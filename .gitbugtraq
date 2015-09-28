@@ -1,0 +1,3 @@
+[bugtraq "jira"]
+  url = http://jira.pearsoncmg.com/jira/browse/%BUGID%
+  logregex = ((?:BRIX|RC)-\\d+)
