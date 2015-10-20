@@ -47,7 +47,7 @@ case $1 in
 		;;
     initial-start)
 		# run the brixclient webserver for accessing the testpage at localhost/tests/integration/testpage-divs.html
-		docker run -d -p 127.0.0.1:80:80 -v ${BRIXCLIENT_PATH}:/www --name brixclient fnichol/uhttpd
+		docker run -d -p 127.0.0.1:80:80 -v ${BRIXCLIENT_PATH}:/usr/share/nginx/html:ro --name brixclient nginx
 
 		# run the redis server
 		docker run -d --name redis-server redis
