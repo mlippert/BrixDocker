@@ -4,6 +4,8 @@
 BRIXCLIENT_PATH=~/Projects/pearson/brixclient/
 BRIXSERVER_PATH=~/Projects/pearson/brixserver/
 CORRECTNESS_ENGINE_PATH=~/Projects/pearson/correctness_engine/
+BRIXCLIENT_IP=
+BRIXSERVER_IP=
 
 # include .brixdevrc if it exists to redefine the variables w/ values of locations of
 # working directories for the brixclient, brixserver and correctness_engine
@@ -47,7 +49,7 @@ case $1 in
 		;;
     initial-start)
 		# run the brixclient webserver for accessing the testpage at localhost/tests/integration/testpage-divs.html
-		docker run -d -p 127.0.0.1:80:80 -v ${BRIXCLIENT_PATH}:/usr/share/nginx/html:ro --name brixclient nginx
+		docker run -d -p ${BRIXCLIENT_IP}:80:80 -v ${BRIXCLIENT_PATH}:/usr/share/nginx/html:ro --name brixclient nginx
 
 		# run the redis server
 		docker run -d --name redis-server redis
@@ -56,7 +58,7 @@ case $1 in
 		docker run -d -v ${CORRECTNESS_ENGINE_PATH}:/app --name brixCE brix/brixce
 
 		# run the ips 
-		docker run -d --link redis-server --link brixCE -p 127.0.0.1:8088:8088 -v ${BRIXSERVER_PATH}:/app --name ips brix/brixserver
+		docker run -d --link redis-server --link brixCE -p ${BRIXSERVER_IP}:8088:8088 -v ${BRIXSERVER_PATH}:/app --name ips brix/brixserver
 		;;
     start)
 		# start the containers once they've been created using initial-start
