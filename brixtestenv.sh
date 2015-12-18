@@ -6,6 +6,7 @@ BRIXSERVER_PATH=~/Projects/pearson/brixserver/
 CORRECTNESS_ENGINE_PATH=~/Projects/pearson/correctness_engine/
 BRIXCLIENT_IP=
 BRIXSERVER_IP=
+CORRECTNESS_ENGINE_IP=
 
 # include .brixdevrc if it exists to redefine the variables w/ values of locations of
 # working directories for the brixclient, brixserver and correctness_engine
@@ -55,7 +56,7 @@ case $1 in
 		docker run -d --name redis-server redis
 
 		# run the correctness engine
-		docker run -d -v ${CORRECTNESS_ENGINE_PATH}:/app --name brixCE brix/brixce
+		docker run -d -p ${CORRECTNESS_ENGINE_IP}:8090:8090 -v ${CORRECTNESS_ENGINE_PATH}:/app --name brixCE brix/brixce
 
 		# run the ips 
 		docker run -d --link redis-server --link brixCE -p ${BRIXSERVER_IP}:8088:8088 -v ${BRIXSERVER_PATH}:/app --name ips brix/brixserver
