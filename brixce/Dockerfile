@@ -1,4 +1,4 @@
-FROM node:0.10
+FROM node:5.6
 LABEL Description="This image is used to start the Brix Correctness Engine (CE)"
 
 # This should be removed once the log target is configurable. -mjl

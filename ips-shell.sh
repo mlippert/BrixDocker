@@ -1,8 +1,8 @@
 #! /bin/bash
 
-# There are some issues w/ PI using the latest version (4+) version of nodejs (integration tests fail) -mjl 11/16/2015
-NODE_VERSION=0.12
-#NODE_VERSION=4.1.2
+#NODE_VERSION=0.12
+#NODE_VERSION=5.6
+NODE_VERSION=5
 
 # Default paths to the brix working directories
 BRIXSERVER_PATH=~/Projects/pearson/brixserver/

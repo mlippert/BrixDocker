@@ -1,7 +1,7 @@
 #! /bin/bash
 
-#NODE_VERSION=0.10
-NODE_VERSION=4.1.2
+#NODE_VERSION=5.6
+NODE_VERSION=5
 
 # Default paths to the brix working directories
 CORRECTNESS_ENGINE_PATH=~/Projects/pearson/correctness_engine/
