@@ -5,6 +5,6 @@ LABEL Description="This image is used to start the Brix Correctness Engine (CE)"
 RUN mkdir -p /mnt/brix/log
 
 EXPOSE 8090
-ENV NODE_ENV=local
+ENV NODE_ENV=docker
 WORKDIR /app
 ENTRYPOINT ["node", "ceapp.js"]

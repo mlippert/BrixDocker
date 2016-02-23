@@ -4,9 +4,11 @@
 BRIXCLIENT_PATH=~/Projects/pearson/brixclient/
 BRIXSERVER_PATH=~/Projects/pearson/brixserver/
 CORRECTNESS_ENGINE_PATH=~/Projects/pearson/correctness_engine/
+MOCKSERVER_PATH=~/Projects/pearson/mockendpointserver/
 BRIXCLIENT_IP=
 BRIXSERVER_IP=
 CORRECTNESS_ENGINE_IP=
+MOCKSERVER_IP=
 
 # include .brixdevrc if it exists to redefine the variables w/ values of locations of
 # working directories for the brixclient, brixserver and correctness_engine
@@ -18,20 +20,22 @@ fi
 function echosyntax() {
     echo ''
 	echo 'brixtestenv.sh provides an interface to create and use the 4 containers needed to test the brix system.'
-	echo 'The 4 containers are:'
+	echo 'The 5 containers are:'
 	echo '  redis-server: The redis instance needed by the brixserver for its cache'
 	echo '  brixCE:       The correctness engine used by the brixserver when processing submissions'
 	echo '  ips:          The brixserver instance targeted by the testpage provided by the brixclient webserver instance'
 	echo '  brixclient:   The webserver providing the brixclient testpage at http://localhost/tests/integration/testpage-divs.html'
+	echo '  mockserver:   The mock endpoint server which provides responses to the endpoints used by the ips when processing requests'
     echo ''
 	echo "If the file $HOME/.brixdevrc exists it will be sourced, allowing local paths to the working directories to be specified."
     echo ''
     echo 'usage:'
-    echo 'build the docker brixce & brixserver images: brixtestenv.sh make-images'
-    echo 'run the 4 docker containers:                 brixtestenv.sh initial-start'
-    echo 'start the 4 docker containers:               brixtestenv.sh start'
-    echo 'stop the 4 docker containers:                brixtestenv.sh stop'
-    echo 'remove the 4 docker containers:              brixtestenv.sh remove-containers'
+    echo 'build the docker brixce, brixserver'
+    echo '    & mockserver images:                     brixtestenv.sh make-images'
+    echo 'run the 5 docker containers:                 brixtestenv.sh initial-start'
+    echo 'start the 5 docker containers:               brixtestenv.sh start'
+    echo 'stop the 5 docker containers:                brixtestenv.sh stop'
+    echo 'remove the 5 docker containers:              brixtestenv.sh remove-containers'
     echo 'this help:                                   brixtestenv.sh --help'
 }
 
@@ -47,6 +51,7 @@ case $1 in
 		# Create the docker images
 		docker build -t brix/brixce brixce
 		docker build -t brix/brixserver brixserver
+		docker build -t brix/mockserver mockserver
 		;;
     initial-start)
 		# run the brixclient webserver for accessing the testpage at localhost/tests/integration/testpage-divs.html
@@ -55,23 +60,26 @@ case $1 in
 		# run the redis server
 		docker run -d --name redis-server redis
 
-		# run the correctness engine
-		docker run -d -p ${CORRECTNESS_ENGINE_IP}:8090:8090 -v ${CORRECTNESS_ENGINE_PATH}:/app --name brixCE brix/brixce
+		# run the mockendpointserver to mock the policy and scoring endpoints used by the ips
+		docker run -d -p ${MOCKSERVER_IP}:9099:9099 -v ${MOCKSERVER_PATH}:/app  --name mockserver brix/mockserver
 
-		# run the ips 
-		docker run -d --link redis-server --link brixCE -p ${BRIXSERVER_IP}:8088:8088 -v ${BRIXSERVER_PATH}:/app --name ips brix/brixserver
+		# run the correctness engine
+		docker run -d --link mockserver -p ${CORRECTNESS_ENGINE_IP}:8090:8090 -v ${CORRECTNESS_ENGINE_PATH}:/app --name brixCE brix/brixce
+
+		# run the ips
+		docker run -d --link redis-server --link brixCE --link mockserver -p ${BRIXSERVER_IP}:8088:8088 -v ${BRIXSERVER_PATH}:/app --name ips brix/brixserver
 		;;
     start)
 		# start the containers once they've been created using initial-start
-		docker start redis-server brixclient brixCE ips
+		docker start brixclient redis-server mockserver brixCE ips
 		;;
     stop)
 		# stop the running containers
-		docker stop ips brixCE redis-server brixclient
+		docker stop ips brixCE mockserver redis-server brixclient
 		;;
     remove-containers)
 		# remove the containers requiring that they be restarted using initial-start
-		docker rm ips brixCE redis-server brixclient
+		docker rm ips brixCE mockserver redis-server brixclient
 		;;
     --help)
 		# show help
