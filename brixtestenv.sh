@@ -36,6 +36,7 @@ function echosyntax() {
     echo 'start the 5 docker containers:               brixtestenv.sh start'
     echo 'stop the 5 docker containers:                brixtestenv.sh stop'
     echo 'remove the 5 docker containers:              brixtestenv.sh remove-containers'
+    echo 'create the docker brix bridge network:       brixtestenv.sh create-network'
     echo 'this help:                                   brixtestenv.sh --help'
 }
 
@@ -58,16 +59,16 @@ case $1 in
 		docker run -d -p ${BRIXCLIENT_IP}:80:80 -v ${BRIXCLIENT_PATH}:/usr/share/nginx/html:ro --name brixclient nginx
 
 		# run the redis server
-		docker run -d --name redis-server redis
+		docker run -d --net brix --name redis-server redis
 
 		# run the mockendpointserver to mock the policy and scoring endpoints used by the ips
-		docker run -d -p ${MOCKSERVER_IP}:9099:9099 -v ${MOCKSERVER_PATH}:/app  --name mockserver brix/mockserver
+		docker run -d --net brix -p ${MOCKSERVER_IP}:9099:9099 -v ${MOCKSERVER_PATH}:/app  --name mockserver brix/mockserver
 
 		# run the correctness engine
-		docker run -d --link mockserver -p ${CORRECTNESS_ENGINE_IP}:8090:8090 -v ${CORRECTNESS_ENGINE_PATH}:/app --name brixCE brix/brixce
+		docker run -d --net brix -p ${CORRECTNESS_ENGINE_IP}:8090:8090 -v ${CORRECTNESS_ENGINE_PATH}:/app --name brixCE brix/brixce
 
 		# run the ips
-		docker run -d --link redis-server --link brixCE --link mockserver -p ${BRIXSERVER_IP}:8088:8088 -v ${BRIXSERVER_PATH}:/app --name ips brix/brixserver
+		docker run -d --net brix -p ${BRIXSERVER_IP}:8088:8088 -v ${BRIXSERVER_PATH}:/app --name ips brix/brixserver
 		;;
     start)
 		# start the containers once they've been created using initial-start
@@ -80,6 +81,11 @@ case $1 in
     remove-containers)
 		# remove the containers requiring that they be restarted using initial-start
 		docker rm ips brixCE mockserver redis-server brixclient
+		;;
+
+	create-brixnetwork)
+		# create a bridge network for the various brix servers
+		docker network create --driver bridge brix
 		;;
     --help)
 		# show help
